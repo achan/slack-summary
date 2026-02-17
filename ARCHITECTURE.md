@@ -110,7 +110,7 @@ Configures which channels to track per workspace.
 | Column             | Type        | Notes                              |
 | ------------------ | ----------- | ---------------------------------- |
 | `id`               | uuid (PK)   | Generated                          |
-| `workspace_id`     | uuid (FK)   | → `workspaces.id`                 |
+| `workspace_id`     | uuid (FK)   | → `workspaces.id`                  |
 | `channel_id`       | text        | Slack channel ID                   |
 | `channel_name`     | text        | Human-readable name                |
 | `active`           | boolean     | Toggle tracking on/off             |
@@ -125,7 +125,7 @@ Raw event storage. Rows older than 3 days are purged nightly.
 | Column             | Type        | Notes                              |
 | ------------------ | ----------- | ---------------------------------- |
 | `id`               | uuid (PK)   | Generated                          |
-| `workspace_id`     | uuid (FK)   | → `workspaces.id`                 |
+| `workspace_id`     | uuid (FK)   | → `workspaces.id`                  |
 | `event_id`         | text UNIQUE | Slack event ID (dedup key)         |
 | `channel_id`       | text        | Slack channel ID                   |
 | `event_type`       | text        | e.g. `message`, `reaction_added`   |
@@ -144,7 +144,7 @@ LLM-generated digests for a channel over a time window.
 | Column             | Type        | Notes                              |
 | ------------------ | ----------- | ---------------------------------- |
 | `id`               | uuid (PK)   | Generated                          |
-| `workspace_id`     | uuid (FK)   | → `workspaces.id`                 |
+| `workspace_id`     | uuid (FK)   | → `workspaces.id`                  |
 | `channel_id`       | text        | Slack channel ID                   |
 | `period_start`     | timestamptz | Start of summarized window         |
 | `period_end`       | timestamptz | End of summarized window           |
@@ -159,13 +159,13 @@ Action items extracted during summarization.
 | Column             | Type        | Notes                              |
 | ------------------ | ----------- | ---------------------------------- |
 | `id`               | uuid (PK)   | Generated                          |
-| `summary_id`       | uuid (FK)   | → `summaries.id`                  |
-| `workspace_id`     | uuid (FK)   | → `workspaces.id`                 |
+| `summary_id`       | uuid (FK)   | → `summaries.id`                   |
+| `workspace_id`     | uuid (FK)   | → `workspaces.id`                  |
 | `channel_id`       | text        | Slack channel ID                   |
 | `description`      | text        | What needs to be done              |
 | `assignee_user_id` | text        | Slack user ID (nullable)           |
 | `source_ts`        | text        | Link to originating message        |
-| `status`           | text        | `open` / `done` / `dismissed`     |
+| `status`           | text        | `open` / `done` / `dismissed`      |
 | `created_at`       | timestamptz | Default `now()`                    |
 
 ---
@@ -257,25 +257,3 @@ for request verification across all workspace installations.
 9. `cleanup` edge function (nightly cron)
 10. Install into remaining workspaces
 
----
-
-## Project Structure
-
-```
-slack-summary/
-├── ARCHITECTURE.md
-├── supabase/
-│   ├── config.toml
-│   ├── migrations/
-│   │   └── 001_initial_schema.sql
-│   └── functions/
-│       ├── slack-events/
-│       │   └── index.ts
-│       ├── summarize/
-│       │   └── index.ts
-│       ├── slack-backfill/
-│       │   └── index.ts
-│       └── cleanup/
-│           └── index.ts
-└── .env.example
-```

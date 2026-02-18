@@ -1,0 +1,22 @@
+<div id="action_item_<%= action_item.id %>" class="action-item <%= action_item.status %>">
+  <div class="action-item-content">
+    <p class="action-item-description"><%= action_item.description %></p>
+    <% if action_item.assignee_user_id.present? %>
+      <span class="action-item-assignee">Assigned: <%= action_item.assignee_user_id %></span>
+    <% end %>
+  </div>
+  <% if action_item.status == "open" %>
+    <div class="action-item-actions">
+      <%= button_to "Done", action_item_path(action_item), method: :patch,
+            params: { action_item: { status: "done" } },
+            class: "btn btn-sm btn-done",
+            data: { turbo: true } %>
+      <%= button_to "Dismiss", action_item_path(action_item), method: :patch,
+            params: { action_item: { status: "dismissed" } },
+            class: "btn btn-sm btn-dismiss",
+            data: { turbo: true } %>
+    </div>
+  <% else %>
+    <span class="action-item-status"><%= action_item.status %></span>
+  <% end %>
+</div>

@@ -1,0 +1,54 @@
+<% content_for(:title, "##{@channel.channel_name || @channel.channel_id} — Slack Summary") %>
+
+<div class="channel-detail">
+  <header class="channel-header">
+    <h2>#<%= @channel.channel_name || @channel.channel_id %></h2>
+    <%= button_to "Generate Summary",
+          api_summaries_generate_path,
+          params: { workspace_id: @workspace.id, channel_id: @channel.channel_id },
+          class: "btn btn-primary",
+          data: { turbo: true } %>
+  </header>
+
+  <div class="channel-layout">
+    <div class="channel-main">
+      <section class="summary-section">
+        <h3>Latest Summary</h3>
+        <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_summary" %>
+        <div id="latest_summary">
+          <% if @summary %>
+            <%= render "summaries/summary", summary: @summary %>
+          <% else %>
+            <p class="empty-state">No summary yet. Click "Generate Summary" to create one.</p>
+          <% end %>
+        </div>
+      </section>
+
+      <section class="events-section">
+        <h3>Event Feed</h3>
+        <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_events" %>
+        <div id="events">
+          <% @events.each do |event| %>
+            <%= render "events/event", event: event %>
+          <% end %>
+        </div>
+        <% if @events.empty? %>
+          <p class="empty-state">No events recorded yet.</p>
+        <% end %>
+      </section>
+    </div>
+
+    <aside class="action-items-sidebar">
+      <h3>Action Items</h3>
+      <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_action_items" %>
+      <div id="action_items">
+        <% @action_items.each do |item| %>
+          <%= render "action_items/action_item", action_item: item %>
+        <% end %>
+      </div>
+      <% if @action_items.empty? %>
+        <p class="empty-state">No action items.</p>
+      <% end %>
+    </aside>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<div id="<%= dom_id(summary) %>" class="summary-card">
+  <div class="summary-meta">
+    <time><%= summary.period_start&.strftime("%b %d %H:%M") %> — <%= summary.period_end&.strftime("%b %d %H:%M") %></time>
+    <span class="summary-model"><%= summary.model_used %></span>
+  </div>
+  <div class="summary-text">
+    <%= simple_format(summary.summary_text) %>
+  </div>
+</div>

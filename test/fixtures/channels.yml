@@ -1,0 +1,11 @@
+general:
+  workspace: one
+  channel_id: C_GENERAL
+  channel_name: general
+  active: true
+
+random:
+  workspace: one
+  channel_id: C_RANDOM
+  channel_name: random
+  active: false

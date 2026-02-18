@@ -1,0 +1,15 @@
+<div id="<%= dom_id(event) %>" class="event-card">
+  <div class="event-meta">
+    <span class="event-type"><%= event.event_type %></span>
+    <span class="event-user"><%= event.user_id %></span>
+    <time class="event-time" datetime="<%= event.created_at.iso8601 %>">
+      <%= event.created_at.strftime("%b %d, %H:%M") %>
+    </time>
+  </div>
+  <% if event.event_type == "message" && event.payload.is_a?(Hash) %>
+    <p class="event-text"><%= event.payload["text"] %></p>
+  <% end %>
+  <% if event.thread_ts.present? %>
+    <span class="event-thread">Thread</span>
+  <% end %>
+</div>

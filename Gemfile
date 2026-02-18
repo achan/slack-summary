@@ -14,7 +14,6 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
-gem "anthropic", "~> 1.21"
 gem "dotenv-rails"
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]

@@ -1,8 +1,6 @@
 class SummarizeJob < ApplicationJob
   queue_as :default
 
-  MODEL = "claude-sonnet-4-5-20250929"
-
   def perform(workspace_id:, channel_id:, period_start: 24.hours.ago, period_end: Time.current)
     workspace = Workspace.find(workspace_id)
     events = workspace.events
@@ -15,14 +13,7 @@ class SummarizeJob < ApplicationJob
     grouped = group_by_thread(events)
     prompt = build_prompt(grouped)
 
-    client = Anthropic::Client.new(api_key: ENV["ANTHROPIC_API_KEY"])
-    response = client.messages.create(
-      model: MODEL,
-      max_tokens: 2048,
-      messages: [ { role: "user", content: prompt } ]
-    )
-
-    result_text = response.content.first.text
+    result_text = call_claude(prompt)
     parsed = JSON.parse(result_text)
 
     summary = Summary.create!(
@@ -31,7 +22,7 @@ class SummarizeJob < ApplicationJob
       period_start: period_start,
       period_end: period_end,
       summary_text: parsed["summary"],
-      model_used: MODEL
+      model_used: "claude-cli"
     )
 
     (parsed["action_items"] || []).each do |item|
@@ -47,6 +38,15 @@ class SummarizeJob < ApplicationJob
   end
 
   private
+
+  def call_claude(prompt)
+    output, status = Open3.capture2(
+      "claude", "-p", prompt,
+      "--output-format", "text"
+    )
+    raise "claude CLI failed (exit #{status.exitstatus}): #{output}" unless status.success?
+    output.strip
+  end
 
   def group_by_thread(events)
     threads = {}
@@ -67,7 +67,7 @@ class SummarizeJob < ApplicationJob
   def build_prompt(grouped)
     lines = [ "Summarize the following Slack channel activity and extract action items." ]
     lines << ""
-    lines << "Return valid JSON with this structure:"
+    lines << "Return ONLY valid JSON (no markdown fences) with this structure:"
     lines << '{ "summary": "...", "action_items": [{ "description": "...", "assignee": "user_id or null", "source_ts": "..." }] }'
     lines << ""
     lines << "## Messages"

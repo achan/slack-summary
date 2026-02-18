@@ -7,6 +7,10 @@ Rails.application.routes.draw do
     end
   end
 
+  resource :settings, only: :show do
+    post :refresh_slack_cache, on: :member
+  end
+
   resources :action_items, only: :update
 
   namespace :api do

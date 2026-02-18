@@ -1,0 +1,11 @@
+<% content_for(:title, "Settings") %>
+
+<h1 class="text-2xl font-bold mb-6">Settings</h1>
+
+<div class="bg-white border border-border rounded-lg p-6">
+  <h2 class="text-lg font-semibold mb-2">Slack channels cache</h2>
+  <p class="text-sm text-muted mb-4">
+    Channel lists are cached indefinitely. Click below to refresh the cache and pick up any new or renamed channels.
+  </p>
+  <%= button_to "Refresh Slack channels", refresh_slack_cache_settings_path, class: "bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 cursor-pointer" %>
+</div>

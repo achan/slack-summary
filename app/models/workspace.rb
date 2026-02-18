@@ -8,12 +8,16 @@ class Workspace < ApplicationRecord
   def fetch_slack_channels
     return [] if user_token.blank?
 
-    Rails.cache.fetch("workspace_#{id}_slack_channels", expires_in: 5.minutes) do
+    Rails.cache.fetch("workspace_#{id}_slack_channels") do
       client = Slack::Web::Client.new(token: user_token)
       list_conversations(client, "public_channel,private_channel").sort_by(&:first)
     end
   rescue ActiveRecord::Encryption::Errors::Decryption
     []
+  end
+
+  def clear_slack_channels_cache
+    Rails.cache.delete("workspace_#{id}_slack_channels")
   end
 
   def slack_client

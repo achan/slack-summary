@@ -11,7 +11,7 @@
 
   <body class="bg-background text-foreground antialiased">
     <div class="grid grid-cols-[240px_1fr] min-h-screen">
-      <aside class="bg-sidebar text-sidebar-foreground p-4 overflow-y-auto">
+      <aside class="bg-sidebar text-sidebar-foreground p-4 overflow-y-auto flex flex-col">
         <h1 class="text-lg text-white mb-6 pb-3 border-b border-white/20">
           <%= link_to "Slack Summary", root_path, class: "text-inherit no-underline" %>
         </h1>
@@ -31,6 +31,9 @@
             </div>
           <% end %>
         </nav>
+        <div class="mt-auto pt-4 border-t border-white/20">
+          <%= link_to "Settings", settings_path, class: "block px-2 py-1 text-sm text-sidebar-foreground no-underline rounded-sm hover:bg-sidebar-accent hover:text-white" %>
+        </div>
       </aside>
 
       <main class="p-8 overflow-y-auto">

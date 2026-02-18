@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Slack Summary" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <h1 class="sidebar-title">Slack Summary</h1>
+        <nav>
+          <% Workspace.includes(:channels).find_each do |workspace| %>
+            <div class="workspace-group">
+              <h2 class="workspace-name"><%= workspace.team_name || workspace.team_id %></h2>
+              <ul class="channel-list">
+                <% workspace.channels.active.each do |channel| %>
+                  <li>
+                    <%= link_to "##{channel.channel_name || channel.channel_id}",
+                          workspace_channel_path(workspace, channel.channel_id),
+                          class: "channel-link" %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

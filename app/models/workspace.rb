@@ -14,12 +14,12 @@ class Workspace < ApplicationRecord
 
     loop do
       response = client.conversations_list(
-        types: "public_channel,private_channel",
+        types: "public_channel,private_channel,mpim",
         exclude_archived: true,
         limit: 200,
         cursor: cursor
       )
-      channels.concat(response.channels.map { |c| [c.name, c.id] })
+      channels.concat(response.channels.map { |c| [c.name || c.purpose&.value || c.id, c.id] })
       cursor = response.response_metadata&.next_cursor
       break if cursor.blank?
     end

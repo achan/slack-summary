@@ -17,7 +17,7 @@ class SlackChannel < ApplicationRecord
     client = Slack::Web::Client.new(token: workspace.user_token)
     info = client.conversations_info(channel: channel_id)
 
-    self.channel_name = info.channel.name
+    self.channel_name = info.channel.name || info.channel.purpose&.value
   rescue Slack::Web::Api::Errors::SlackError
     # Leave channel_name blank if the API call fails
   end

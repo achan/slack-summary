@@ -1,0 +1,60 @@
+erDiagram
+    workspaces {
+        bigint id PK
+        text team_id UK
+        text team_name
+        text user_token
+        text signing_secret
+        datetime created_at
+    }
+
+    channels {
+        bigint id PK
+        bigint workspace_id FK
+        text channel_id
+        text channel_name
+        boolean active
+        datetime created_at
+    }
+
+    events {
+        bigint id PK
+        bigint workspace_id FK
+        text event_id UK
+        text channel_id
+        text event_type
+        text user_id
+        text ts
+        text thread_ts
+        json payload
+        datetime created_at
+    }
+
+    summaries {
+        bigint id PK
+        bigint workspace_id FK
+        text channel_id
+        datetime period_start
+        datetime period_end
+        text summary_text
+        text model_used
+        datetime created_at
+    }
+
+    action_items {
+        bigint id PK
+        bigint summary_id FK
+        bigint workspace_id FK
+        text channel_id
+        text description
+        text assignee_user_id
+        text source_ts
+        text status
+        datetime created_at
+    }
+
+    workspaces ||--o{ channels : "has"
+    workspaces ||--o{ events : "has"
+    workspaces ||--o{ summaries : "has"
+    workspaces ||--o{ action_items : "has"
+    summaries ||--o{ action_items : "has"

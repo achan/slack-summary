@@ -6,4 +6,4 @@ one:
 two:
   team_name: Second Workspace
   user_token: xoxp-test-token-two
-  signing_secret: test_signing_secret
+  signing_secret: other_signing_secret

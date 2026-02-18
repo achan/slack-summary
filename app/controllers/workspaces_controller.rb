@@ -41,6 +41,6 @@ class WorkspacesController < ApplicationController
   end
 
   def workspace_params
-    params.require(:workspace).permit(:team_name, :user_token, :signing_secret)
+    params.require(:workspace).permit(:team_name, :user_token, :signing_secret, :include_dms, :include_mpims)
   end
 end

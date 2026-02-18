@@ -19,7 +19,9 @@ module Api
       return head :ok unless channel_id
 
       slack_channel = SlackChannel.find_by(channel_id: channel_id, active: true)
+      slack_channel ||= auto_track_direct_conversation(channel_id, event["channel_type"])
       return head :ok unless slack_channel
+
       event_id = payload["event_id"]
       return head :ok unless event_id
 
@@ -39,6 +41,24 @@ module Api
 
     def url_verification?
       parsed_payload["type"] == "url_verification"
+    end
+
+    def auto_track_direct_conversation(channel_id, channel_type)
+      return unless %w[im mpim].include?(channel_type)
+
+      workspace = Workspace.find_by(signing_secret: ENV["SLACK_SIGNING_SECRET"])
+      return unless workspace
+
+      case channel_type
+      when "im"
+        return unless workspace.include_dms
+      when "mpim"
+        return unless workspace.include_mpims
+      end
+
+      workspace.slack_channels.find_or_create_by(channel_id: channel_id) do |c|
+        c.channel_name = channel_id
+      end
     end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_18_195010) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_18_220330) do
   create_table "action_items", force: :cascade do |t|
     t.integer "summary_id", null: false
     t.text "source_type"
@@ -70,6 +70,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_195010) do
     t.text "signing_secret"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "include_dms", default: false, null: false
+    t.boolean "include_mpims", default: false, null: false
   end
 
   add_foreign_key "action_items", "summaries"

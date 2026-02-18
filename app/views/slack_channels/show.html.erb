@@ -1,0 +1,61 @@
+<% content_for(:title, "##{@channel.channel_name || @channel.channel_id} — Slack Summary") %>
+
+<div>
+  <header class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold">#<%= @channel.channel_name || @channel.channel_id %></h2>
+    <div class="flex gap-2 items-center">
+      <%= link_to "Edit", edit_workspace_slack_channel_path(@workspace, @channel),
+            class: "inline-flex items-center px-2 py-1 text-xs font-medium border border-border rounded-md hover:bg-accent" %>
+      <%= button_to "Delete", workspace_slack_channel_path(@workspace, @channel), method: :delete,
+            class: "inline-flex items-center px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-accent",
+            data: { turbo_confirm: "Delete this channel?" } %>
+      <%= button_to "Generate Summary",
+            api_summaries_generate_path,
+            params: { workspace_id: @workspace.id, channel_id: @channel.channel_id },
+            class: "inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90",
+            data: { turbo: true } %>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-[1fr_300px] gap-6">
+    <div class="min-w-0">
+      <section class="mb-8">
+        <h3 class="text-base font-semibold mb-4">Latest Summary</h3>
+        <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_summary" %>
+        <div id="latest_summary">
+          <% if @summary %>
+            <%= render "summaries/summary", summary: @summary %>
+          <% else %>
+            <p class="text-muted italic py-4">No summary yet. Click "Generate Summary" to create one.</p>
+          <% end %>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="text-base font-semibold mb-4">Event Feed</h3>
+        <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_events" %>
+        <div id="events">
+          <% @events.each do |event| %>
+            <%= render "slack_events/event", event: event %>
+          <% end %>
+        </div>
+        <% if @events.empty? %>
+          <p class="text-muted italic py-4">No events recorded yet.</p>
+        <% end %>
+      </section>
+    </div>
+
+    <aside class="bg-card border border-border rounded-lg p-5 h-fit">
+      <h3 class="text-base font-semibold mb-4">Action Items</h3>
+      <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_action_items" %>
+      <div id="action_items">
+        <% @action_items.each do |item| %>
+          <%= render "action_items/action_item", action_item: item %>
+        <% end %>
+      </div>
+      <% if @action_items.empty? %>
+        <p class="text-muted italic py-4">No action items.</p>
+      <% end %>
+    </aside>
+  </div>
+</div>

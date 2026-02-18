@@ -1,11 +1,9 @@
 one:
-  team_id: T_TEST_ONE
   team_name: Test Workspace
   user_token: xoxp-test-token-one
   signing_secret: test_signing_secret
 
 two:
-  team_id: T_TEST_TWO
   team_name: Second Workspace
   user_token: xoxp-test-token-two
-  signing_secret: test_signing_secret
+  signing_secret: other_signing_secret

@@ -9,6 +9,7 @@ gem "importmap-rails"
 gem "turbo-rails"
 gem "stimulus-rails"
 gem "jbuilder"
+gem "tailwindcss-rails"
 
 gem "solid_cache"
 gem "solid_queue"
@@ -33,3 +34,5 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "slack-ruby-client", "~> 3.1"

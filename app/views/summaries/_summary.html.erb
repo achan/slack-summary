@@ -1,9 +1,9 @@
-<div id="<%= dom_id(summary) %>" class="summary-card">
-  <div class="summary-meta">
+<div id="<%= dom_id(summary) %>" class="bg-card border border-border rounded-lg p-5">
+  <div class="flex justify-between text-xs text-muted mb-3">
     <time><%= summary.period_start&.strftime("%b %d %H:%M") %> — <%= summary.period_end&.strftime("%b %d %H:%M") %></time>
-    <span class="summary-model"><%= summary.model_used %></span>
+    <span><%= summary.model_used %></span>
   </div>
-  <div class="summary-text">
+  <div class="text-sm leading-relaxed">
     <%= simple_format(summary.summary_text) %>
   </div>
 </div>

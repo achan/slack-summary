@@ -1,6 +1,10 @@
 class WorkspacesController < ApplicationController
   before_action :set_workspace, only: [:edit, :update, :destroy]
 
+  def index
+    @workspaces = Workspace.includes(:slack_channels).all
+  end
+
   def new
     @workspace = Workspace.new
   end
@@ -37,6 +41,6 @@ class WorkspacesController < ApplicationController
   end
 
   def workspace_params
-    params.require(:workspace).permit(:team_id, :team_name, :user_token, :signing_secret)
+    params.require(:workspace).permit(:team_name, :user_token, :signing_secret)
   end
 end

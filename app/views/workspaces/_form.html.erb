@@ -1,7 +1,7 @@
 <%= form_with(model: workspace) do |f| %>
   <% if workspace.errors.any? %>
-    <div class="form-errors">
-      <ul>
+    <div class="bg-red-50 border border-destructive rounded-md px-4 py-3 mb-4 text-destructive text-sm">
+      <ul class="list-disc pl-5">
         <% workspace.errors.full_messages.each do |msg| %>
           <li><%= msg %></li>
         <% end %>
@@ -9,28 +9,27 @@
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= f.label :team_id, "Team ID" %>
-    <%= f.text_field :team_id, required: true %>
+  <div class="mb-4">
+    <%= f.label :team_name, "Team Name", class: "block text-sm font-semibold mb-1" %>
+    <%= f.text_field :team_name, required: true,
+          class: "w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent" %>
   </div>
 
-  <div class="form-group">
-    <%= f.label :team_name, "Team Name" %>
-    <%= f.text_field :team_name %>
+  <div class="mb-4">
+    <%= f.label :user_token, "User Token", class: "block text-sm font-semibold mb-1" %>
+    <%= f.password_field :user_token, placeholder: workspace.persisted? ? "(unchanged)" : nil,
+          class: "w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent" %>
   </div>
 
-  <div class="form-group">
-    <%= f.label :user_token, "User Token" %>
-    <%= f.password_field :user_token, placeholder: workspace.persisted? ? "(unchanged)" : nil %>
+  <div class="mb-4">
+    <%= f.label :signing_secret, "Signing Secret", class: "block text-sm font-semibold mb-1" %>
+    <%= f.password_field :signing_secret, placeholder: workspace.persisted? ? "(unchanged)" : nil,
+          class: "w-full px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent" %>
   </div>
 
-  <div class="form-group">
-    <%= f.label :signing_secret, "Signing Secret" %>
-    <%= f.password_field :signing_secret, placeholder: workspace.persisted? ? "(unchanged)" : nil %>
-  </div>
-
-  <div class="form-actions">
-    <%= f.submit class: "btn btn-primary" %>
-    <%= link_to "Cancel", root_path, class: "btn" %>
+  <div class="flex gap-3 mt-6">
+    <%= f.submit class: "inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 cursor-pointer" %>
+    <%= link_to "Cancel", root_path,
+          class: "inline-flex items-center px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-accent" %>
   </div>
 <% end %>

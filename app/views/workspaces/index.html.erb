@@ -1,0 +1,43 @@
+<% content_for(:title, "Dashboard — Slack Summary") %>
+
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold">Workspaces</h2>
+    <%= link_to "Add Workspace", new_workspace_path,
+          class: "inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90" %>
+  </div>
+
+  <% if @workspaces.empty? %>
+    <p class="text-muted italic py-4">No workspaces configured yet. Add a workspace to get started.</p>
+  <% else %>
+    <% @workspaces.each do |workspace| %>
+      <div class="bg-card border border-border rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold"><%= workspace.team_name %></h3>
+          <div class="flex gap-2">
+            <%= link_to "Edit", edit_workspace_path(workspace),
+                  class: "inline-flex items-center px-2 py-1 text-xs font-medium border border-border rounded-md hover:bg-accent" %>
+            <%= button_to "Delete", workspace_path(workspace), method: :delete,
+                  class: "inline-flex items-center px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-accent",
+                  data: { turbo_confirm: "Delete this workspace and all its channels?" } %>
+          </div>
+        </div>
+        <ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
+          <% workspace.slack_channels.active.each do |channel| %>
+            <li>
+              <%= link_to workspace_slack_channel_path(workspace, channel),
+                    class: "block p-4 bg-background border border-border rounded-md no-underline text-foreground hover:border-primary transition-colors" do %>
+                <span class="font-semibold">#<%= channel.channel_name || channel.channel_id %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+        <%= turbo_frame_tag "add_channel_#{workspace.id}",
+              src: available_workspace_slack_channels_path(workspace),
+              loading: :lazy do %>
+          <span class="text-sm text-muted">Loading channels...</span>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_18_174653) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_18_195010) do
   create_table "action_items", force: :cascade do |t|
     t.integer "summary_id", null: false
     t.text "source_type"
@@ -65,13 +65,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_18_174653) do
   end
 
   create_table "workspaces", force: :cascade do |t|
-    t.text "team_id", null: false
     t.text "team_name"
     t.text "user_token"
     t.text "signing_secret"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["team_id"], name: "index_workspaces_on_team_id", unique: true
   end
 
   add_foreign_key "action_items", "summaries"

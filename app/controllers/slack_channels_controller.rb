@@ -11,13 +11,23 @@ class SlackChannelsController < ApplicationController
 
   def new
     @channel = @workspace.slack_channels.build
+    existing_ids = @workspace.slack_channels.pluck(:channel_id)
+    @available_channels = @workspace.fetch_slack_channels.reject { |_, id| existing_ids.include?(id) }
+  end
+
+  def available
+    existing_ids = @workspace.slack_channels.pluck(:channel_id)
+    @available_channels = @workspace.fetch_slack_channels.reject { |_, id| existing_ids.include?(id) }
+    render layout: false
   end
 
   def create
     @channel = @workspace.slack_channels.build(slack_channel_params)
     if @channel.save
-      redirect_to workspace_slack_channel_path(@workspace, @channel), notice: "Channel created."
+      redirect_to root_path, notice: "Channel added."
     else
+      existing_ids = @workspace.slack_channels.pluck(:channel_id)
+      @available_channels = @workspace.fetch_slack_channels.reject { |_, id| existing_ids.include?(id) }
       render :new, status: :unprocessable_entity
     end
   end
@@ -35,7 +45,7 @@ class SlackChannelsController < ApplicationController
 
   def destroy
     @channel.destroy
-    redirect_to root_path, notice: "Channel deleted."
+    redirect_to root_path, notice: "Channel removed."
   end
 
   private

@@ -1,8 +1,10 @@
 Rails.application.routes.draw do
-  root "dashboard#show"
+  root "workspaces#index"
 
-  resources :workspaces, except: [:index, :show] do
-    resources :slack_channels
+  resources :workspaces, except: :show do
+    resources :slack_channels do
+      get :available, on: :collection
+    end
   end
 
   resources :action_items, only: :update

@@ -64,6 +64,9 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
+  # Allow tunnel hostname for Slack event delivery
+  config.hosts << "achanbot-1.docovia.com"
+
   # Allow Action Cable from any origin in development
   config.action_cable.disable_request_forgery_protection = true
 

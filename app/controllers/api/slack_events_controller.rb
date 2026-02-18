@@ -12,17 +12,14 @@ module Api
         return render json: { challenge: payload["challenge"] }
       end
 
-      workspace = Workspace.find_by(team_id: payload["team_id"])
-      return head :ok unless workspace
-
       event = payload["event"]
       return head :ok unless event
 
       channel_id = event["channel"] || event.dig("item", "channel")
       return head :ok unless channel_id
-      return head :ok unless workspace.active_channel_ids.include?(channel_id)
 
-      slack_channel = workspace.slack_channels.find_by!(channel_id: channel_id)
+      slack_channel = SlackChannel.find_by(channel_id: channel_id, active: true)
+      return head :ok unless slack_channel
       event_id = payload["event_id"]
       return head :ok unless event_id
 

@@ -22,7 +22,7 @@ class SlackChannelsControllerTest < ActionDispatch::IntegrationTest
         slack_channel: { channel_id: "C_NEW", channel_name: "new-channel" }
       }
     end
-    assert_redirected_to workspace_slack_channel_path(@workspace, SlackChannel.last)
+    assert_redirected_to root_path
   end
 
   test "create with invalid params renders new" do

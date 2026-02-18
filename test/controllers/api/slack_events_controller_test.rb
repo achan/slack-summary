@@ -18,7 +18,6 @@ class Api::SlackEventsControllerTest < ActionDispatch::IntegrationTest
   test "rejects requests with invalid signature" do
     payload = {
       type: "event_callback",
-      team_id: "T_TEST_ONE",
       event_id: "Ev_NEW_001",
       event: { type: "message", channel: "C_GENERAL", user: "U1", ts: "1.1", text: "hi" }
     }
@@ -36,7 +35,6 @@ class Api::SlackEventsControllerTest < ActionDispatch::IntegrationTest
   test "stores event with valid signature" do
     payload = {
       type: "event_callback",
-      team_id: "T_TEST_ONE",
       event_id: "Ev_NEW_002",
       event: { type: "message", channel: "C_GENERAL", user: "U1", ts: "1.2", text: "hello" }
     }
@@ -61,7 +59,6 @@ class Api::SlackEventsControllerTest < ActionDispatch::IntegrationTest
   test "deduplicates events" do
     payload = {
       type: "event_callback",
-      team_id: "T_TEST_ONE",
       event_id: "Ev_MSG_001",
       event: { type: "message", channel: "C_GENERAL", user: "U1", ts: "1.1", text: "dup" }
     }
@@ -86,7 +83,6 @@ class Api::SlackEventsControllerTest < ActionDispatch::IntegrationTest
   test "ignores events for inactive channels" do
     payload = {
       type: "event_callback",
-      team_id: "T_TEST_ONE",
       event_id: "Ev_RANDOM_001",
       event: { type: "message", channel: "C_RANDOM", user: "U1", ts: "1.1", text: "ignored" }
     }

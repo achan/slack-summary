@@ -8,14 +8,14 @@ class WorkspacesControllerTest < ActionDispatch::IntegrationTest
 
   test "create with valid params" do
     assert_difference "Workspace.count", 1 do
-      post workspaces_path, params: { workspace: { team_id: "T_NEW", team_name: "New Workspace" } }
+      post workspaces_path, params: { workspace: { team_name: "New Workspace" } }
     end
     assert_redirected_to root_path
   end
 
   test "create with invalid params renders new" do
     assert_no_difference "Workspace.count" do
-      post workspaces_path, params: { workspace: { team_id: "" } }
+      post workspaces_path, params: { workspace: { team_name: "" } }
     end
     assert_response :unprocessable_entity
   end

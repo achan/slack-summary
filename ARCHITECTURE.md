@@ -46,7 +46,8 @@ using the Slack Events API with user tokens.
 A single Slack app is created and installed into each workspace the consultant
 belongs to. Each installation yields a **user token** (`xoxp-`). All
 installations share the same Events API request URL (one Rails endpoint behind
-cloudflared). The `team_id` in each event payload identifies the source workspace.
+cloudflared). The `channel` field in each event payload is matched directly
+against tracked channels to route events to the correct workspace.
 
 ### User tokens, not bot tokens
 
@@ -103,8 +104,7 @@ Stores one row per Slack workspace installation.
 | Column             | Type          | Notes                              |
 | ------------------ | ------------- | ---------------------------------- |
 | `id`               | bigint (PK)   | Auto-increment                     |
-| `team_id`          | text UNIQUE   | Slack workspace ID                 |
-| `team_name`        | text          | Human-readable name                |
+| `team_name`        | text          | Human-readable name (required)     |
 | `user_token`       | text          | Encrypted `xoxp-` token            |
 | `signing_secret`   | text          | Per-app (same for all rows)        |
 | `created_at`       | datetime      | Default `now()`                    |
@@ -185,9 +185,8 @@ Action items extracted during summarization.
 Responsibilities:
 1. Handle Slack's `url_verification` challenge (return `challenge` value).
 2. Verify request signature using the app's `signing_secret`.
-3. Look up `team_id` → workspace.
-4. Check if `channel` is in the active channels list.
-5. Upsert into `events` table (dedup on `event_id`).
+3. Look up `channel` → active `SlackChannel` (implicitly resolves workspace).
+4. Upsert into `events` table (dedup on `event_id`).
 6. Return `200 OK` immediately.
 
 **Critical:** Must respond within 3 seconds. No LLM calls here.

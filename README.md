@@ -1,4 +1,4 @@
-# Slack Summary
+# Tesseract
 
 Multi-workspace Slack event ingestion, summarization, and action-item
 extraction. Built on Rails 8 with SQLite, running locally behind a
@@ -62,7 +62,7 @@ Clone the repo and install dependencies:
 
 ```sh
 git clone <repo-url>
-cd slack-summary
+cd tesseract
 bin/setup --skip-server
 ```
 
@@ -96,7 +96,7 @@ From the main repo directory:
 bin/create-worktree.sh my-feature
 ```
 
-This creates a worktree at `~/repos/slack-summary-worktrees/my-feature`
+This creates a worktree at `~/repos/tesseract-worktrees/my-feature`
 on a new `feature/my-feature` branch, symlinks your `.env`, and runs
 `bundle install`.
 

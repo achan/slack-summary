@@ -67,7 +67,9 @@ class SummarizeJob < ApplicationJob
   end
 
   def build_prompt(grouped, channel)
-    lines = [ "Summarize the following Slack channel activity and extract action items." ]
+    existing_items = channel.action_items.open_items.order(:created_at)
+
+    lines = [ "Summarize the following Slack channel activity and extract NEW action items." ]
     lines << ""
     lines << "For each action item, assess its priority (1-5) based on the message content:"
     lines << "- 1: Urgent/blocking — outages, broken builds, security issues, explicit urgency"
@@ -79,7 +81,21 @@ class SummarizeJob < ApplicationJob
     lines << ""
     lines << "Return ONLY valid JSON (no markdown fences) with this structure:"
     lines << '{ "summary": "...", "action_items": [{ "description": "...", "assignee": "user_id or null", "source_ts": "...", "priority": 1-5 }] }'
+    lines << "You may return zero, one, or multiple action items — include as many as are warranted by the messages."
     lines << ""
+
+    if existing_items.any?
+      lines << "## Existing Open Action Items"
+      lines << "The following action items already exist for this channel. Do NOT duplicate these."
+      lines << "Only create action items for genuinely new tasks from the messages below."
+      lines << ""
+      existing_items.each do |item|
+        assignee = item.assignee_user_id.present? ? " (assigned to #{item.assignee_user_id})" : ""
+        lines << "- [P#{item.priority}] #{item.description}#{assignee}"
+      end
+      lines << ""
+    end
+
     lines << "## Channel Context"
     lines << "Priority: #{channel.priority} (1=highest, 5=lowest)"
     lines << "Interaction description: #{channel.interaction_description}" if channel.interaction_description.present?

@@ -1,5 +1,12 @@
+<%= turbo_stream_from "dashboard_live_activities" %>
 <%= turbo_stream_from "dashboard_action_items" %>
 <%= turbo_stream_from "dashboard_events" %>
+
+<div id="dashboard_live_activities" class="space-y-2 mb-6">
+  <% @live_activities.each do |activity| %>
+    <%= render "dashboard/live_activity", live_activity: activity %>
+  <% end %>
+</div>
 
 <% if @action_items.any? %>
   <h2 class="text-xl font-semibold mb-4">Action Items</h2>

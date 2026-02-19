@@ -1,5 +1,7 @@
 class DashboardController < ApplicationController
   def index
+    @live_activities = LiveActivity.visible
+
     @action_items = ActionItem
       .open_items
       .where(source_type: "SlackChannel")

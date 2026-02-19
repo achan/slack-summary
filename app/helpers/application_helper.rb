@@ -15,8 +15,15 @@ module ApplicationHelper
     sanitize(markdown.render(emojify(text)))
   end
 
+  BLOCK_SANITIZE_TAGS = Rails::HTML::SafeListSanitizer.allowed_tags + %w[img]
+  BLOCK_SANITIZE_ATTRS = Rails::HTML::SafeListSanitizer.allowed_attributes + %w[src alt loading class data-permalink target rel]
+
   def render_blocks(blocks, workspace:)
-    sanitize(blocks.map { |block| render_block(block, workspace: workspace) }.join)
+    sanitize(
+      blocks.map { |block| render_block(block, workspace: workspace) }.join,
+      tags: BLOCK_SANITIZE_TAGS,
+      attributes: BLOCK_SANITIZE_ATTRS
+    )
   end
 
   def render_event_body(event)
@@ -25,11 +32,39 @@ module ApplicationHelper
 
     workspace = event.slack_channel.workspace
     blocks = payload["blocks"]
-    if blocks.is_a?(Array) && blocks.any?
+    body = if blocks.is_a?(Array) && blocks.any?
       render_blocks(blocks, workspace: workspace)
     elsif payload["text"].present?
       render_markdown(resolve_mentions(payload["text"], workspace: workspace))
     end
+
+    images = render_event_images(payload, workspace: workspace)
+    return body if images.blank?
+
+    sanitized_images = sanitize(images, tags: BLOCK_SANITIZE_TAGS, attributes: BLOCK_SANITIZE_ATTRS)
+    [body, sanitized_images].compact_blank.join.html_safe
+  end
+
+  def render_event_images(payload, workspace:)
+    files = payload["files"]
+    return unless files.is_a?(Array)
+
+    images = files.select { |f| f["id"].present? && f["mimetype"]&.start_with?("image/") }
+    return if images.empty?
+
+    tags = images.map do |f|
+      alt = h(f["name"] || "image")
+      permalink = f["permalink"]
+      src = workspace_slack_file_proxy_path(workspace, file_id: f["id"])
+      img = %(<img src="#{h(src)}" alt="#{alt}" loading="lazy" class="event-image" data-permalink="#{h(permalink)}">)
+      if permalink
+        %(<a href="#{h(permalink)}" target="_blank" rel="noopener" class="event-image-link">#{img}</a>)
+      else
+        img
+      end
+    end
+
+    %(<div class="flex flex-wrap gap-2 mt-2">#{tags.join}</div>)
   end
 
   def short_time_ago(time)
@@ -53,6 +88,14 @@ module ApplicationHelper
   end
 
   private
+
+  def slack_image_src(url, workspace:, file_id: nil)
+    if file_id.present?
+      workspace_slack_file_proxy_path(workspace, file_id: file_id)
+    else
+      url
+    end
+  end
 
   def resolve_mentions(text, workspace:)
     text.gsub(/<@(U[A-Z0-9]+)>/) do
@@ -89,10 +132,23 @@ module ApplicationHelper
       "<strong>#{h(block.dig("text", "text"))}</strong>"
     when "divider"
       "<hr>"
+    when "image"
+      url = block["image_url"] || block["url"]
+      return "" unless url
+      alt = h(block["alt_text"] || "image")
+      src = slack_image_src(url, workspace: workspace)
+      %(<div class="mt-2"><img src="#{h(src)}" alt="#{alt}" loading="lazy" class="event-image"></div>)
     when "context"
       items = (block["elements"] || []).map do |el|
         case el["type"]
-        when "image" then ""
+        when "image"
+          url = el["image_url"] || el["url"]
+          if url
+            src = slack_image_src(url, workspace: workspace)
+            %(<img src="#{h(src)}" alt="#{h(el["alt_text"] || "")}" class="inline-block w-4 h-4 rounded">)
+          else
+            ""
+          end
         when "mrkdwn" then render_markdown(resolve_mentions(el["text"] || "", workspace: workspace))
         else h(el["text"] || "")
         end

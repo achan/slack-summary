@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     resources :slack_channels, except: [:index, :new, :create] do
       patch :toggle_hidden, on: :member
     end
+    get "files/:file_id/proxy", to: "slack_files#show", as: :slack_file_proxy
   end
 
   resource :settings, only: :show

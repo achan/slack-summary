@@ -15,6 +15,11 @@ Rails.application.configure do
   # Turn on fragment caching in view templates.
   config.action_controller.perform_caching = true
 
+  # Skip CSRF origin check since cloudflared rewrites the Host header,
+  # causing a mismatch with the browser's Origin header. The CSRF token
+  # itself is still verified.
+  config.action_controller.forgery_protection_origin_check = false
+
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
 

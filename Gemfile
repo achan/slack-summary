@@ -37,3 +37,4 @@ end
 
 gem "slack-ruby-client", "~> 3.1"
 gem "redcarpet", "~> 3.6"
+gem "gemoji", "~> 4.1"

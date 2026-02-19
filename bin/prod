@@ -6,6 +6,6 @@ export RAILS_ENV=production
 export SOLID_QUEUE_IN_PUMA=1
 export PORT="${PORT:-6001}"
 
-bin/rails tailwindcss:build
+bin/rails assets:precompile
 bin/rails db:prepare
 exec bin/rails server

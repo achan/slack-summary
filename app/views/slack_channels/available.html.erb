@@ -1,6 +1,6 @@
 <%= turbo_frame_tag "add_channel_#{@workspace.id}" do %>
   <% if @available_channels.any? %>
-    <%= form_with url: workspace_slack_channels_path(@workspace), scope: :slack_channel, class: "flex items-center gap-2 mt-3" do |f| %>
+    <%= form_with url: workspace_slack_channels_path(@workspace), scope: :slack_channel, data: { turbo_frame: "_top" }, class: "flex items-center gap-2 mt-3" do |f| %>
       <%= f.select :channel_id,
             options_for_select(@available_channels),
             { include_blank: "Select a channel..." },

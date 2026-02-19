@@ -23,7 +23,7 @@ class SlackEvent < ApplicationRecord
   def enqueue_action_items_job
     return if slack_channel.hidden?
 
-    GenerateActionItemsJob.set(wait: 5.seconds).perform_later(slack_event_id: id)
+    GenerateActionItemsJob.set(wait: 90.seconds).perform_later(slack_event_id: id)
   end
 
   def broadcast_to_dashboard

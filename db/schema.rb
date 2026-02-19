@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_19_165520) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_19_200000) do
   create_table "action_items", force: :cascade do |t|
     t.integer "summary_id", null: false
     t.text "source_type"
@@ -25,6 +25,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_19_165520) do
     t.index ["source_type", "source_id"], name: "index_action_items_on_source_type_and_source_id"
     t.index ["status"], name: "index_action_items_on_status"
     t.index ["summary_id"], name: "index_action_items_on_summary_id"
+  end
+
+  create_table "live_activities", force: :cascade do |t|
+    t.text "activity_id", null: false
+    t.text "activity_type", null: false
+    t.text "title", null: false
+    t.text "subtitle"
+    t.text "status", default: "active", null: false
+    t.json "metadata", default: {}
+    t.datetime "ends_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_type", "activity_id"], name: "index_live_activities_on_activity_type_and_activity_id", unique: true
   end
 
   create_table "slack_channels", force: :cascade do |t|

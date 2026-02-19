@@ -38,11 +38,12 @@ module ApplicationHelper
       render_markdown(resolve_mentions(payload["text"], workspace: workspace))
     end
 
+    attachments = render_attachments(payload["attachments"], workspace: workspace)
     images = render_event_images(payload, workspace: workspace)
-    return body if images.blank?
+    return body if attachments.blank? && images.blank?
 
-    sanitized_images = sanitize(images, tags: BLOCK_SANITIZE_TAGS, attributes: BLOCK_SANITIZE_ATTRS)
-    [body, sanitized_images].compact_blank.join.html_safe
+    sanitized_images = images.present? ? sanitize(images, tags: BLOCK_SANITIZE_TAGS, attributes: BLOCK_SANITIZE_ATTRS) : nil
+    [body, attachments, sanitized_images].compact_blank.join.html_safe
   end
 
   def render_event_images(payload, workspace:)
@@ -105,6 +106,52 @@ module ApplicationHelper
       name = $2.presence || workspace.slack_channels.find_by(channel_id: $1)&.display_name || $1
       "##{name}"
     end
+  end
+
+  def render_attachments(attachments, workspace:)
+    return unless attachments.is_a?(Array) && attachments.any?
+
+    attachments.map { |att| render_attachment(att, workspace: workspace) }.compact.join
+  end
+
+  def render_attachment(att, workspace:)
+    parts = []
+
+    if att["pretext"].present?
+      parts << render_markdown(resolve_slack_formatting(att["pretext"], workspace: workspace))
+    end
+
+    inner = []
+
+    if att["title"].present?
+      inner << %(<div class="font-semibold">#{render_markdown(resolve_slack_formatting(att["title"], workspace: workspace))}</div>)
+    end
+
+    if att["text"].present?
+      inner << render_markdown(resolve_slack_formatting(att["text"], workspace: workspace))
+    end
+
+    if att["footer"].present?
+      inner << %(<div class="text-xs text-muted mt-1">#{render_markdown(resolve_slack_formatting(att["footer"], workspace: workspace))}</div>)
+    end
+
+    if inner.any?
+      color = att["color"]
+      style = color ? %( style="border-color: ##{color.gsub(/[^0-9a-fA-F]/, '')}") : ""
+      parts << %(<div class="border-l-2 border-muted pl-3 mt-1"#{style}>#{inner.join}</div>)
+    end
+
+    return if parts.empty?
+    %(<div class="mt-2">#{parts.join}</div>)
+  end
+
+  def resolve_slack_formatting(text, workspace:)
+    convert_slack_links(resolve_mentions(text, workspace: workspace))
+  end
+
+  def convert_slack_links(text)
+    text.gsub(/<(https?:\/\/[^|>]+)\|([^>]+)>/) { "[#{$2}](#{$1})" }
+        .gsub(/<(https?:\/\/[^>]+)>/) { $1 }
   end
 
   def find_emoji(name)

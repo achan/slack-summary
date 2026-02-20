@@ -3,8 +3,8 @@ class SlackChannelsController < ApplicationController
   before_action :set_slack_channel, only: [:show, :edit, :update, :destroy, :toggle_hidden, :toggle_actionable]
 
   def show
-    @events = @channel.slack_events.order(created_at: :desc).limit(50)
-    @summary = Summary.where(source: @channel).order(created_at: :desc).first
+    @events = @channel.all_slack_events.order(created_at: :desc).limit(50)
+    @summary = @channel.all_summaries.order(created_at: :desc).first
     @action_items = @summary&.action_items&.order(created_at: :asc) || ActionItem.none
     @workspaces = Workspace.includes(:slack_channels).all
   end

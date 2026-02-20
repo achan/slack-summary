@@ -14,3 +14,12 @@ old_event:
   ts: "1600000001.000001"
   payload: '{"text": "Old message", "type": "message"}'
   created_at: <%= 5.days.ago.iso8601 %>
+
+archived_event:
+  slack_channel: archived_general
+  event_id: Ev_ARCHIVED_001
+  event_type: message
+  user_id: U_USER1
+  ts: "1500000001.000001"
+  payload: '{"text": "Archived message", "type": "message"}'
+  created_at: <%= 10.days.ago.iso8601 %>

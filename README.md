@@ -121,3 +121,56 @@ From the main repo directory:
 ```sh
 bin/remove-worktree.sh my-feature
 ```
+
+## Production
+
+The app runs on a home server behind a cloudflared tunnel via
+`bin/prod`. Systemd manages the process and auto-deploys.
+
+### Initial setup
+
+Make sure your `.env` is populated, then install the systemd units:
+
+```sh
+sudo cp deploy/tesseract.service /etc/systemd/system/
+sudo cp deploy/tesseract-deploy.service /etc/systemd/system/
+sudo cp deploy/tesseract-deploy.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+```
+
+Start the app and enable auto-deploy:
+
+```sh
+sudo systemctl enable --now tesseract
+sudo systemctl enable --now tesseract-deploy.timer
+```
+
+The timer polls for new commits on `main` every minute. When it
+detects changes it runs `bin/deploy`, which pulls the latest code,
+installs dependencies and precompiles assets only when their source
+files changed, runs `db:prepare`, and restarts the service.
+
+### Useful commands
+
+```sh
+systemctl status tesseract              # app status
+journalctl -u tesseract -f              # follow app logs
+systemctl list-timers tesseract-deploy* # next scheduled deploy check
+tail -f log/deploy.log                  # deploy history
+bin/deploy --force                      # manual deploy
+bin/deploy --check                      # exit 0 if new commits available
+```
+
+### Configuration
+
+`bin/deploy` reads these environment variables (all optional):
+
+| Variable | Default | Description |
+|---|---|---|
+| `DEPLOY_BRANCH` | `main` | Branch to deploy from |
+| `DEPLOY_REMOTE` | `origin` | Git remote to fetch |
+| `DEPLOY_SERVICE` | `tesseract` | Systemd service to restart |
+
+Edit the `WorkingDirectory` and `EnvironmentFile` paths in the
+service files if your checkout lives somewhere other than
+`/home/user/tesseract`.

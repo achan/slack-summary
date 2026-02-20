@@ -9,6 +9,8 @@ class AddPredecessorIdToSlackChannels < ActiveRecord::Migration[8.0]
         # Group channels by (workspace_id, channel_name), ordered by created_at.
         # Within each group, link each channel to its immediate predecessor.
         # Skip DMs (D*), MPIMs (G*), and channels with unresolved names.
+        # Link each channel to its immediate predecessor (most recent
+        # same-name channel created before it in the same workspace).
         execute <<~SQL
           UPDATE slack_channels
           SET predecessor_id = (
@@ -36,6 +38,16 @@ class AddPredecessorIdToSlackChannels < ActiveRecord::Migration[8.0]
                 AND prev.channel_id NOT LIKE 'D%'
                 AND prev.channel_id NOT LIKE 'G%'
             )
+        SQL
+
+        # Copy settings from each predecessor to its successor.
+        execute <<~SQL
+          UPDATE slack_channels
+          SET hidden = (SELECT prev.hidden FROM slack_channels prev WHERE prev.id = slack_channels.predecessor_id),
+              actionable = (SELECT prev.actionable FROM slack_channels prev WHERE prev.id = slack_channels.predecessor_id),
+              priority = (SELECT prev.priority FROM slack_channels prev WHERE prev.id = slack_channels.predecessor_id),
+              interaction_description = (SELECT prev.interaction_description FROM slack_channels prev WHERE prev.id = slack_channels.predecessor_id)
+          WHERE predecessor_id IS NOT NULL
         SQL
       end
     end

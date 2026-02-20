@@ -65,12 +65,17 @@ class GenerateActionItemsJob < ApplicationJob
 
     lines = ["Extract NEW action items from the following Slack channel activity."]
     lines << ""
+    lines << "Pay special attention to important dates mentioned in messages (deadlines, meetings,"
+    lines << "launches, reviews, etc.) and create action items for them."
+    lines << ""
     lines << "For each action item, assess its priority (1-5) based on the message content:"
     lines << "- 1: Urgent/blocking — outages, broken builds, security issues, explicit urgency"
     lines << "- 2: High — time-sensitive requests, approaching deadlines, important decisions needed"
     lines << "- 3: Normal — standard tasks, follow-ups, general requests"
     lines << "- 4: Low — nice-to-haves, minor improvements, non-urgent questions"
     lines << "- 5: Minimal — informational, no real action needed soon"
+    lines << "DMs and group DMs are direct conversations — treat their action items as higher priority"
+    lines << "than equivalent items from public channels."
     lines << "Use the channel priority as a baseline but adjust per-item based on content and tone."
     lines << ""
     lines << "Return ONLY valid JSON (no markdown fences) with this structure:"

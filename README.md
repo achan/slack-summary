@@ -124,13 +124,25 @@ bin/remove-worktree.sh my-feature
 
 ## Production
 
-The app runs on a home server behind a cloudflared tunnel via
+The app runs on a remote server behind a cloudflared tunnel via
 `bin/prod`. Systemd manages the process and a GitHub webhook
 triggers auto-deploys on push.
 
-### Initial setup
+### Server setup
 
-Make sure your `.env` is populated, then install the systemd service:
+Clone the repo on the server and populate `.env`:
+
+```sh
+git clone <repo-url> /opt/tesseract
+cd /opt/tesseract
+cp .env.example .env
+# fill in .env values
+bin/rails db:encryption:init  # paste output into .env
+```
+
+Edit `deploy/tesseract.service` to match your server — update
+`User`, `Group`, and all `/opt/tesseract` paths to your checkout
+location. Then install and start the service:
 
 ```sh
 sudo cp deploy/tesseract.service /etc/systemd/system/
@@ -177,7 +189,3 @@ bin/deploy --force                 # manual deploy
 | `DEPLOY_BRANCH` | `main` | Branch to deploy from |
 | `DEPLOY_REMOTE` | `origin` | Git remote to fetch |
 | `DEPLOY_SERVICE` | `tesseract` | Systemd service to restart |
-
-Edit the `WorkingDirectory` and `EnvironmentFile` paths in the
-service file if your checkout lives somewhere other than
-`/home/user/tesseract`.

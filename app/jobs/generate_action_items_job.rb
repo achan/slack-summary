@@ -161,8 +161,7 @@ class GenerateActionItemsJob < ApplicationJob
       end
     end
 
-    # Give up — treat as no action items
-    Rails.logger.warn("GenerateActionItemsJob: could not parse JSON from Claude response: #{text.first(200)}")
-    { "action_items" => [] }
+    # Give up — let the job fail
+    JSON.parse(text)
   end
 end

@@ -9,6 +9,8 @@ After=network.target
 
 [Service]
 Type=simple
+User=root
+Group=root
 WorkingDirectory=/home/user/tesseract
 ExecStart=/home/user/tesseract/bin/prod
 Restart=on-failure

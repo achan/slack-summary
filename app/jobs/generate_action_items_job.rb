@@ -49,6 +49,9 @@ class GenerateActionItemsJob < ApplicationJob
     end
 
     stop_live_activity(metadata: { "items" => items.size })
+  rescue => e
+    stop_live_activity(subtitle: "Failed")
+    raise
   end
 
   private

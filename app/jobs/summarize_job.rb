@@ -6,7 +6,7 @@ class SummarizeJob < ApplicationJob
     channel = workspace.slack_channels.find_by!(channel_id: channel_id)
     return unless channel.actionable?
 
-    period_start ||= channel.summaries.maximum(:period_end) || 24.hours.ago
+    period_start ||= channel.all_summaries.maximum(:period_end) || 24.hours.ago
     events = channel.slack_events
       .in_window(period_start, period_end)
       .order(:created_at)
@@ -68,7 +68,7 @@ class SummarizeJob < ApplicationJob
   end
 
   def build_prompt(grouped, channel)
-    existing_items = channel.action_items.open_items.order(:created_at)
+    existing_items = channel.all_action_items.open_items.order(:created_at)
 
     lines = [ "Summarize the following Slack channel activity and extract NEW action items." ]
     lines << ""

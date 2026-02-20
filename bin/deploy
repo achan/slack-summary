@@ -16,10 +16,14 @@ deploy_progress() {
 
 deploy_stop() {
   [ -z "$COMMIT_SHA" ] && return
-  curl -s -X POST "$API_URL/stop" \
-    -H "Content-Type: application/json" \
-    -d "{\"activity_type\":\"deploy\",\"activity_id\":\"$COMMIT_SHA\"}" \
-    > /dev/null 2>&1 || true
+  local attempt
+  for attempt in 1 2 3; do
+    curl -s --max-time 5 -X POST "$API_URL/stop" \
+      -H "Content-Type: application/json" \
+      -d "{\"activity_type\":\"deploy\",\"activity_id\":\"$COMMIT_SHA\"}" \
+      > /dev/null 2>&1 && return
+    sleep 2
+  done
 }
 
 LOCK_DIR="tmp/deploy.lock"
@@ -27,7 +31,8 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
   echo "$(date '+%Y-%m-%d %H:%M:%S') Deploy already in progress, skipping"
   exit 0
 fi
-trap 'deploy_stop; rmdir "$LOCK_DIR"' EXIT
+DEPLOY_STOPPED=false
+trap '[ "$DEPLOY_STOPPED" = false ] && deploy_stop; rmdir "$LOCK_DIR"' EXIT
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Starting deploy..."
 
@@ -49,6 +54,8 @@ RAILS_ENV=production bin/rails db:migrate
 
 deploy_progress "Restarting..."
 echo "$(date '+%Y-%m-%d %H:%M:%S') Restarting puma..."
+deploy_stop
+DEPLOY_STOPPED=true
 touch tmp/restart.txt
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Deploy complete."

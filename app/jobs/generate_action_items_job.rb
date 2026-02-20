@@ -35,8 +35,7 @@ class GenerateActionItemsJob < ApplicationJob
     update_live_activity(subtitle: "Calling Claude...")
 
     result_text = call_claude(prompt)
-    result_text = result_text.sub(/\A\s*```\w*\n/, "").sub(/\n```\s*\z/, "")
-    parsed = JSON.parse(result_text)
+    parsed = extract_json(result_text)
 
     items = parsed["action_items"] || []
     items.each do |item|
@@ -101,6 +100,7 @@ class GenerateActionItemsJob < ApplicationJob
     lines << "Return ONLY valid JSON (no markdown fences) with this structure:"
     lines << '{ "action_items": [{ "description": "...", "assignee": "user_id or null", "source_ts": "...", "priority": 1-5 }] }'
     lines << "You may return zero, one, or multiple action items — include as many as are warranted by the messages."
+    lines << "If there are no action items, return: { \"action_items\": [] }"
     lines << ""
 
     if existing_items.any?
@@ -135,6 +135,34 @@ class GenerateActionItemsJob < ApplicationJob
       end
     end
 
+    lines << ""
+    lines << "Remember: respond with ONLY a JSON object, no other text."
+
     lines.join("\n")
+  end
+
+  def extract_json(text)
+    # Strip markdown code fences
+    text = text.sub(/\A\s*```\w*\n/, "").sub(/\n```\s*\z/, "")
+
+    # Try parsing as-is first
+    begin
+      return JSON.parse(text)
+    rescue JSON::ParserError
+      # Fall through to extraction
+    end
+
+    # Try to extract a JSON object from surrounding text
+    if (match = text.match(/\{.*\}/m))
+      begin
+        return JSON.parse(match[0])
+      rescue JSON::ParserError
+        # Fall through
+      end
+    end
+
+    # Give up — treat as no action items
+    Rails.logger.warn("GenerateActionItemsJob: could not parse JSON from Claude response: #{text.first(200)}")
+    { "action_items" => [] }
   end
 end

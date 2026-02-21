@@ -1,13 +1,32 @@
 <% content_for(:title, "Action Items") %>
 
+<%= turbo_stream_from "kanban_action_items" %>
+
 <h1 class="text-2xl font-bold mb-6">Action Items</h1>
 
-<div class="flex items-stretch gap-3 flex-wrap">
-  <% @action_items.each do |action_item| %>
-    <%= render "action_items/action_item", action_item: action_item %>
+<%
+  column_labels = {
+    "untriaged" => "Untriaged",
+    "todo" => "To Do",
+    "in_progress" => "In Progress",
+    "done" => "Done",
+    "backlog" => "Backlog",
+    "wont_fix" => "Won't Fix"
+  }
+%>
+
+<div data-controller="kanban" class="flex gap-4 overflow-x-auto pb-4" style="min-height: 70vh;">
+  <% @columns.each do |status, items| %>
+    <div class="flex flex-col w-[300px] shrink-0 bg-secondary/30 rounded-lg">
+      <div class="flex items-center justify-between px-3 py-2 border-b border-border">
+        <h2 class="text-sm font-semibold"><%= column_labels[status] %></h2>
+        <span class="text-xs text-muted bg-secondary px-1.5 py-0.5 rounded-full"><%= items.size %></span>
+      </div>
+      <div id="kanban_column_<%= status %>" data-kanban-target="column" data-status="<%= status %>" class="flex flex-col gap-2 p-2 flex-1 overflow-y-auto min-h-[100px]">
+        <% items.each do |action_item| %>
+          <%= render "action_items/action_item", action_item: action_item %>
+        <% end %>
+      </div>
+    </div>
   <% end %>
 </div>
-
-<% if @action_items.empty? %>
-  <p class="text-sm text-muted">No action items.</p>
-<% end %>

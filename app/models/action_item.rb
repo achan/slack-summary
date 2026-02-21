@@ -1,15 +1,28 @@
 class ActionItem < ApplicationRecord
+  STATUSES = %w[untriaged todo in_progress done backlog wont_fix].freeze
+  KANBAN_COLUMNS = %w[untriaged todo in_progress done backlog wont_fix].freeze
+  DASHBOARD_STATUSES = %w[untriaged todo].freeze
+
   belongs_to :summary, optional: true
   belongs_to :source, polymorphic: true
 
   validates :description, presence: true
-  validates :status, presence: true, inclusion: { in: %w[open done dismissed] }
+  validates :status, presence: true, inclusion: { in: STATUSES }
   validates :priority, inclusion: { in: 1..5 }
 
-  scope :open_items, -> { where(status: "open") }
+  STATUS_LABELS = {
+    "todo" => "To Do",
+    "wont_fix" => "Won't Fix"
+  }.freeze
+
+  scope :untriaged, -> { where(status: "untriaged") }
+
+  def status_label
+    STATUS_LABELS[status] || status.titleize
+  end
 
   after_create_commit :broadcast_append, :broadcast_dashboard_append
-  after_update_commit :broadcast_replace, :broadcast_dashboard_remove
+  after_update_commit :broadcast_replace, :broadcast_dashboard_update, :broadcast_kanban_move
 
   private
 
@@ -36,7 +49,7 @@ class ActionItem < ApplicationRecord
   end
 
   def broadcast_dashboard_append
-    return unless source.is_a?(SlackChannel) && status == "open"
+    return unless source.is_a?(SlackChannel) && status.in?(DASHBOARD_STATUSES)
 
     broadcast_append_to(
       "dashboard_action_items",
@@ -46,10 +59,32 @@ class ActionItem < ApplicationRecord
     )
   end
 
-  def broadcast_dashboard_remove
-    return unless source.is_a?(SlackChannel) && status != "open"
+  def broadcast_dashboard_update
+    return unless source.is_a?(SlackChannel)
 
-    broadcast_remove_to("dashboard_action_items", target: "dashboard_action_item_#{id}")
+    if status.in?(DASHBOARD_STATUSES)
+      broadcast_replace_to(
+        "dashboard_action_items",
+        target: "dashboard_action_item_#{id}",
+        partial: "dashboard/action_item",
+        locals: { action_item: self }
+      )
+    else
+      broadcast_remove_to("dashboard_action_items", target: "dashboard_action_item_#{id}")
+    end
+  end
+
+  def broadcast_kanban_move
+    return unless source.is_a?(SlackChannel) && saved_change_to_status?
+
+    old_status = status_before_last_save
+    broadcast_remove_to("kanban_action_items", target: "action_item_#{id}")
+    broadcast_append_to(
+      "kanban_action_items",
+      target: "kanban_column_#{status}",
+      partial: "action_items/action_item",
+      locals: { action_item: self }
+    )
   end
 
   def dom_id(record)

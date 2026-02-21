@@ -3,7 +3,11 @@ class ActionItemsController < ApplicationController
     @action_items = ActionItem
       .where(source_type: "SlackChannel")
       .includes(source: :workspace)
-      .order(Arel.sql("CASE status WHEN 'open' THEN 0 WHEN 'done' THEN 1 WHEN 'dismissed' THEN 2 END"), created_at: :desc)
+      .order(priority: :asc, created_at: :desc)
+
+    @columns = ActionItem::KANBAN_COLUMNS.map do |status|
+      [status, @action_items.select { |i| i.status == status }]
+    end
   end
 
   def update
@@ -12,11 +16,14 @@ class ActionItemsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: turbo_stream.replace(
-          "action_item_#{@action_item.id}",
+        streams = []
+        streams << turbo_stream.remove("action_item_#{@action_item.id}")
+        streams << turbo_stream.append(
+          "kanban_column_#{@action_item.status}",
           partial: "action_items/action_item",
           locals: { action_item: @action_item }
         )
+        render turbo_stream: streams
       end
       format.html { redirect_back fallback_location: root_path }
     end

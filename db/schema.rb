@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_20_210648) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_20_220000) do
   create_table "action_items", force: :cascade do |t|
     t.integer "summary_id"
     t.text "source_type"
@@ -45,6 +45,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_20_210648) do
     t.text "model_used"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "summary"
   end
 
   create_table "slack_channels", force: :cascade do |t|

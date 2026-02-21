@@ -1,28 +1,46 @@
 #!/usr/bin/env bash
 
-set -e
+# Wrap in main() so bash reads the entire script before executing.
+# This prevents issues if bin/deploy updates this file mid-execution.
+main() {
+  set -e
 
-export RAILS_ENV=production
-export SOLID_QUEUE_IN_PUMA=1
-export PORT="${PORT:-6001}"
+  export RAILS_ENV=production
+  export SOLID_QUEUE_IN_PUMA=1
+  export PORT="${PORT:-6001}"
 
-# Read tunnel ID from .worktreerc
-CLOUDFLARE_TUNNEL_ID=$(grep "^CLOUDFLARE_TUNNEL_ID=" .worktreerc | cut -d'=' -f2)
+  # Read tunnel ID from .worktreerc
+  CLOUDFLARE_TUNNEL_ID=$(grep "^CLOUDFLARE_TUNNEL_ID=" .worktreerc | cut -d'=' -f2)
 
-bin/rails assets:precompile
-bin/rails db:prepare
+  bin/rails assets:precompile
+  bin/rails db:prepare
 
-# Start cloudflared tunnel in the background
-if [ -n "$CLOUDFLARE_TUNNEL_ID" ]; then
-  CLOUDFLARE_TOKEN=$(cloudflared tunnel token "$CLOUDFLARE_TUNNEL_ID")
-  cloudflared tunnel --loglevel debug --logfile cloudflared.log run --token "$CLOUDFLARE_TOKEN" &
-  TUNNEL_PID=$!
-  echo "Started cloudflared tunnel (PID: $TUNNEL_PID)"
+  # Start cloudflared tunnel in the background
+  if [ -n "$CLOUDFLARE_TUNNEL_ID" ]; then
+    CLOUDFLARE_TOKEN=$(cloudflared tunnel token "$CLOUDFLARE_TUNNEL_ID")
+    cloudflared tunnel --loglevel debug --logfile cloudflared.log run --token "$CLOUDFLARE_TOKEN" &
+    TUNNEL_PID=$!
+    echo "Started cloudflared tunnel (PID: $TUNNEL_PID)"
+  else
+    echo "Warning: No CLOUDFLARE_TUNNEL_ID found in .worktreerc, skipping tunnel"
+  fi
 
-  # Ensure tunnel is stopped when the script exits
-  trap "kill $TUNNEL_PID 2>/dev/null" EXIT
-else
-  echo "Warning: No CLOUDFLARE_TUNNEL_ID found in .worktreerc, skipping tunnel"
-fi
+  SHOULD_RESTART=true
 
-exec bin/rails server
+  cleanup() {
+    SHOULD_RESTART=false
+    [ -n "$TUNNEL_PID" ] && kill "$TUNNEL_PID" 2>/dev/null
+    exit 0
+  }
+  trap cleanup INT TERM EXIT
+
+  while $SHOULD_RESTART; do
+    bin/rails server || true
+    if $SHOULD_RESTART; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') Server exited, restarting in 1s..."
+      sleep 1
+    fi
+  done
+}
+
+main "$@"

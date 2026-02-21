@@ -4,11 +4,22 @@ set -e
 cd "$(dirname "$0")/.."
 
 LOCK_DIR="tmp/deploy.lock"
+LOCK_TIMEOUT=300 # 5 minutes
+
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  echo "$(date '+%Y-%m-%d %H:%M:%S') Deploy already in progress, skipping"
-  exit 0
+  if [ -d "$LOCK_DIR" ]; then
+    lock_age=$(( $(date +%s) - $(stat -f %m "$LOCK_DIR") ))
+    if [ "$lock_age" -gt "$LOCK_TIMEOUT" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') Removing stale deploy lock (${lock_age}s old)"
+      rmdir "$LOCK_DIR" 2>/dev/null || true
+      mkdir "$LOCK_DIR"
+    else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') Deploy already in progress (${lock_age}s), skipping"
+      exit 0
+    fi
+  fi
 fi
-trap 'rmdir "$LOCK_DIR"' EXIT
+trap 'rmdir "$LOCK_DIR" 2>/dev/null' EXIT
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Starting deploy..."
 
@@ -24,7 +35,11 @@ RAILS_ENV=production bin/rails assets:precompile
 echo "$(date '+%Y-%m-%d %H:%M:%S') Running migrations..."
 RAILS_ENV=production bin/rails db:migrate
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') Restarting puma..."
-touch tmp/restart.txt
+echo "$(date '+%Y-%m-%d %H:%M:%S') Restarting server..."
+if [ -f tmp/pids/server.pid ]; then
+  kill "$(cat tmp/pids/server.pid)" 2>/dev/null || true
+else
+  touch tmp/restart.txt
+fi
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Deploy complete."

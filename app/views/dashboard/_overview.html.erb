@@ -1,6 +1,13 @@
 <div id="dashboard_overview">
   <% if overview %>
-    <% summary, details = overview.body.split("\n\n", 2) %>
+    <%
+      if overview.summary.present?
+        summary = overview.summary
+        details = overview.body
+      else
+        summary, details = overview.body.split("\n\n", 2)
+      end
+    %>
     <div data-controller="collapsible">
       <div class="text-sm overview-content">
         <%= render_markdown(summary) %>

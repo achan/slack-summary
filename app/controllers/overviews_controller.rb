@@ -1,6 +1,6 @@
 class OverviewsController < ApplicationController
   def create
     GenerateOverviewJob.perform_later
-    head :ok
+    head :no_content
   end
 end

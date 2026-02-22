@@ -31,8 +31,13 @@ class ApplicationController < ActionController::Base
   end
   helper_method :http_basic_auth_configured?
 
+  def active_profile_ids
+    @active_profile_ids ||= Profile.where(enabled: true).pluck(:id)
+  end
+  helper_method :active_profile_ids
+
   def active_workspace_ids
-    @active_workspace_ids ||= Workspace.joins(:profile).where(profiles: { enabled: true }).pluck(:id)
+    @active_workspace_ids ||= Workspace.where(profile_id: active_profile_ids).pluck(:id)
   end
   helper_method :active_workspace_ids
 

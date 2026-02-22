@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_22_000000) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_22_010000) do
   create_table "action_items", force: :cascade do |t|
     t.integer "summary_id"
-    t.text "source_type"
-    t.integer "source_id"
+    t.text "source_type", null: false
+    t.integer "source_id", null: false
     t.text "description", null: false
     t.text "assignee_user_id"
     t.text "source_ts"

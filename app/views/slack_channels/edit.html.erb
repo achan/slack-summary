@@ -1,6 +1,6 @@
 <% content_for(:title, "Edit Channel — #{@channel.channel_name || @channel.channel_id}") %>
 
-<div class="max-w-md">
+<div class="max-w-md px-8">
   <h2 class="text-xl font-semibold mb-6">Edit Channel</h2>
   <%= render "form", workspace: @workspace, channel: @channel, available_channels: [] %>
 </div>

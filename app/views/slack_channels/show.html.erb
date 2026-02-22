@@ -1,7 +1,7 @@
 <% content_for(:title, "##{@channel.channel_name || @channel.channel_id} — Tesseract") %>
 
 <div>
-  <header class="flex items-center justify-between mb-6">
+  <header class="flex items-center justify-between mb-6 px-8">
     <div class="flex items-center gap-2">
       <h2 class="text-xl font-semibold">#<%= @channel.channel_name || @channel.channel_id %></h2>
       <%= render "slack_channels/star", workspace: @workspace, channel: @channel %>
@@ -24,7 +24,7 @@
     </div>
   </header>
 
-  <section class="mb-8">
+  <section class="mb-8 px-8">
     <h3 class="text-base font-semibold mb-4">Latest Summary</h3>
     <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_summary" %>
     <div id="latest_summary">
@@ -37,19 +37,19 @@
   </section>
 
   <section class="mb-8">
-    <h3 class="text-base font-semibold mb-4">Action Items</h3>
+    <h3 class="text-base font-semibold mb-4 px-8">Action Items</h3>
     <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_action_items" %>
-    <div id="action_items" class="flex items-stretch gap-3 overflow-x-auto pb-2">
+    <div id="action_items" class="flex items-stretch gap-3 overflow-x-auto pb-2 px-8">
       <% @action_items.each do |item| %>
         <%= render "action_items/action_item", action_item: item %>
       <% end %>
     </div>
     <% if @action_items.empty? %>
-      <p class="text-muted italic py-4">No action items.</p>
+      <p class="text-muted italic py-4 px-8">No action items.</p>
     <% end %>
   </section>
 
-  <section>
+  <section class="px-8">
     <h3 class="text-base font-semibold mb-4">Event Feed</h3>
     <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_events" %>
     <div id="events">

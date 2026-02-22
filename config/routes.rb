@@ -2,11 +2,13 @@ Rails.application.routes.draw do
   mount MissionControl::Jobs::Engine, at: "/jobs"
 
   root "dashboard#index"
+  get "dashboard/events", to: "dashboard#events", as: :dashboard_events
 
   resources :workspaces, except: :show do
     resources :slack_channels, except: [:index, :new, :create] do
       patch :toggle_hidden, on: :member
       patch :toggle_actionable, on: :member
+      get :events, on: :member
     end
     get "files/:file_id/proxy", to: "slack_files#show", as: :slack_file_proxy
   end

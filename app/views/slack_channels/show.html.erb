@@ -6,9 +6,6 @@
       <h2 class="text-xl font-semibold">#<%= @channel.channel_name || @channel.channel_id %></h2>
       <%= render "slack_channels/star", workspace: @workspace, channel: @channel %>
       <%= render "slack_channels/actionable", workspace: @workspace, channel: @channel %>
-      <% if @channel.predecessor.present? %>
-        <span class="text-xs text-muted">includes history from archived channels</span>
-      <% end %>
     </div>
     <div class="flex gap-2 items-center">
       <%= link_to "Edit", edit_workspace_slack_channel_path(@workspace, @channel),
@@ -16,22 +13,30 @@
       <%= button_to "Delete", workspace_slack_channel_path(@workspace, @channel), method: :delete,
             class: "inline-flex items-center px-2 py-1 text-xs font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-accent",
             data: { turbo_confirm: "Delete this channel?" } %>
-      <%= button_to "Generate Summary",
-            api_summaries_generate_path,
-            params: { workspace_id: @workspace.id, channel_id: @channel.channel_id },
-            class: "inline-flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90",
-            data: { turbo: true } %>
     </div>
   </header>
 
-  <section class="mb-8 px-8">
-    <h3 class="text-base font-semibold mb-4">Latest Summary</h3>
+  <section class="mb-8">
+    <div class="flex items-center gap-2 mb-4 px-8">
+      <h3 class="text-base font-semibold">Summaries</h3>
+      <%= button_to api_summaries_generate_path,
+            params: { workspace_id: @workspace.id, channel_id: @channel.channel_id },
+            class: "inline-flex items-center justify-center w-6 h-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+            title: "Generate Summary",
+            data: { turbo: true } do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      <% end %>
+    </div>
     <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_summary" %>
-    <div id="latest_summary">
-      <% if @summary %>
-        <%= render "summaries/summary", summary: @summary %>
+    <div id="latest_summary" class="flex gap-3 overflow-x-auto pb-2 px-8">
+      <% if @summaries.any? %>
+        <% @summaries.each do |summary| %>
+          <div class="w-[400px] shrink-0">
+            <%= render "summaries/summary", summary: summary %>
+          </div>
+        <% end %>
       <% else %>
-        <p class="text-muted italic py-4">No summary yet. Click "Generate Summary" to create one.</p>
+        <p class="text-muted italic py-4">No summaries yet.</p>
       <% end %>
     </div>
   </section>
@@ -41,7 +46,9 @@
     <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_action_items" %>
     <div id="action_items" class="flex items-stretch gap-3 overflow-x-auto pb-2 px-8">
       <% @action_items.each do |item| %>
-        <%= render "action_items/action_item", action_item: item %>
+        <div class="w-[350px] shrink-0">
+          <%= render "action_items/action_item", action_item: item %>
+        </div>
       <% end %>
     </div>
     <% if @action_items.empty? %>
@@ -49,16 +56,22 @@
     <% end %>
   </section>
 
-  <section class="px-8">
+  <section class="px-8" data-controller="reply-modal" data-action="keydown@window->reply-modal#closeOnKey">
     <h3 class="text-base font-semibold mb-4">Event Feed</h3>
     <%= turbo_stream_from "workspace_#{@workspace.id}_channel_#{@channel.channel_id}_events" %>
     <div id="events">
       <% @events.each do |event| %>
         <%= render "slack_events/event", event: event %>
       <% end %>
+      <% if @has_more_events && @events.any? %>
+        <%= turbo_frame_tag "events_page_#{@events.last.created_at.iso8601(6)}",
+              src: events_workspace_slack_channel_path(@workspace, @channel, before: @events.last.created_at.iso8601(6)),
+              loading: :lazy %>
+      <% end %>
     </div>
     <% if @events.empty? %>
       <p class="text-muted italic py-4">No events recorded yet.</p>
     <% end %>
+    <%= render "dashboard/reply_modal" %>
   </section>
 </div>

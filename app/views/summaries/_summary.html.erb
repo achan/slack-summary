@@ -1,9 +1,21 @@
 <div id="<%= dom_id(summary) %>" class="bg-card border border-border rounded-lg p-5">
   <div class="flex justify-between text-xs text-muted mb-3">
-    <time><%= summary.period_start&.strftime("%b %d %H:%M") %> — <%= summary.period_end&.strftime("%b %d %H:%M") %></time>
+    <span data-controller="local-time-range"
+          data-local-time-range-start-value="<%= summary.period_start&.iso8601 %>"
+          data-local-time-range-end-value="<%= summary.period_end&.iso8601 %>">
+      <%= summary.period_start&.strftime("%b %d %H:%M") %> — <%= summary.period_end&.strftime("%b %d %H:%M") %>
+    </span>
     <span><%= summary.model_used %></span>
   </div>
-  <div class="text-sm leading-relaxed">
-    <%= simple_format(summary.summary_text) %>
+  <div data-controller="expandable">
+    <div class="text-sm leading-relaxed max-h-40 overflow-hidden"
+         data-expandable-target="content">
+      <%= simple_format(summary.summary_text) %>
+    </div>
+    <button class="text-xs text-primary hover:underline mt-1"
+            data-expandable-target="toggle"
+            data-action="expandable#toggle">
+      Show more
+    </button>
   </div>
 </div>

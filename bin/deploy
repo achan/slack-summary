@@ -36,9 +36,33 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') Running migrations..."
 RAILS_ENV=production bin/rails db:migrate
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Restarting server..."
-if [ -f tmp/pids/server.pid ]; then
-  kill "$(cat tmp/pids/server.pid)" 2>/dev/null || true
+PIDFILE="tmp/pids/server.pid"
+if [ -f "$PIDFILE" ]; then
+  PID=$(cat "$PIDFILE")
+  if kill -0 "$PID" 2>/dev/null; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Sending SIGTERM to PID $PID..."
+    kill "$PID" 2>/dev/null || true
+
+    # Wait for process to actually exit (up to 30s)
+    elapsed=0
+    while kill -0 "$PID" 2>/dev/null && [ "$elapsed" -lt 30 ]; do
+      sleep 1
+      elapsed=$((elapsed + 1))
+    done
+
+    if kill -0 "$PID" 2>/dev/null; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') Server still alive after ${elapsed}s, sending SIGKILL..."
+      kill -9 "$PID" 2>/dev/null || true
+      sleep 1
+    else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') Server stopped after ${elapsed}s"
+    fi
+  else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') PID $PID not running, removing stale pidfile"
+  fi
+  rm -f "$PIDFILE"
 else
+  echo "$(date '+%Y-%m-%d %H:%M:%S') No pidfile found, touching restart.txt"
   touch tmp/restart.txt
 fi
 

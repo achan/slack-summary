@@ -67,6 +67,11 @@ Rails.application.configure do
   # Allow tunnel hostname for Slack event delivery
   config.hosts << "achanbot-1.docovia.com"
 
+  # Allow additional hosts (e.g. Tailscale) from ALLOWED_HOSTS env var
+  ENV.fetch("ALLOWED_HOSTS", "").split(",").each do |host|
+    config.hosts << host.strip if host.present?
+  end
+
   # Allow Action Cable from any origin in development
   config.action_cable.disable_request_forgery_protection = true
 

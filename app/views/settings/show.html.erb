@@ -12,7 +12,7 @@
       <span class="text-sm text-muted flex items-center gap-2">
         <% if @health[:deploy][:configured] %>
           <%= health_dot(:green) %>
-          Configured<%= @health[:deploy][:last_deploy] ? " · last deploy #{short_time_ago(@health[:deploy][:last_deploy])} ago" : "" %>
+          Configured<%= @health[:deploy][:last_deploy] ? " · last deploy #{time_ago_label(@health[:deploy][:last_deploy])}" : "" %>
         <% else %>
           <%= health_dot(:red) %>
           Not configured

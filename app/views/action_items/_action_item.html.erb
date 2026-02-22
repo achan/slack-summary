@@ -46,7 +46,14 @@
       <% end %>
     </div>
   </div>
-  <p class="text-sm mb-1"><%= action_item.description %></p>
+  <div data-controller="expandable" class="mb-1">
+    <p class="text-sm max-h-16 overflow-hidden" data-expandable-target="content"><%= action_item.description %></p>
+    <button class="text-xs text-primary hover:underline mt-1"
+            data-expandable-target="toggle"
+            data-action="expandable#toggle">
+      Show more
+    </button>
+  </div>
   <div class="mt-auto">
     <div class="flex items-center gap-2 text-xs text-muted">
       <% if action_item.assignee_user_id.present? %>

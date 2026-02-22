@@ -1,12 +1,24 @@
 class SlackChannelsController < ApplicationController
   before_action :set_workspace
-  before_action :set_slack_channel, only: [:show, :edit, :update, :destroy, :toggle_hidden, :toggle_actionable]
+  before_action :set_slack_channel, only: [:show, :edit, :update, :destroy, :toggle_hidden, :toggle_actionable, :events]
 
   def show
-    @events = @channel.all_slack_events.order(created_at: :desc).limit(50)
-    @summary = @channel.all_summaries.order(created_at: :desc).first
-    @action_items = @summary&.action_items&.order(created_at: :asc) || ActionItem.none
+    events_scope = @channel.all_slack_events.order(created_at: :desc)
+    @events = events_scope.limit(EVENTS_PER_PAGE)
+    @has_more_events = events_scope.limit(EVENTS_PER_PAGE + 1).count > EVENTS_PER_PAGE
+    @summaries = @channel.all_summaries.order(created_at: :desc)
+    @summary = @summaries.first
+    @action_items = @channel.all_action_items.active.where(status: %w[todo done]).order(created_at: :asc)
     @workspaces = Workspace.includes(:slack_channels).all
+  end
+
+  EVENTS_PER_PAGE = 50
+
+  def events
+    scope = @channel.all_slack_events.order(created_at: :desc)
+    scope = scope.where("slack_events.created_at < ?", Time.parse(params[:before])) if params[:before].present?
+    @events = scope.limit(EVENTS_PER_PAGE)
+    @has_more = scope.limit(EVENTS_PER_PAGE + 1).count > EVENTS_PER_PAGE
   end
 
   def edit

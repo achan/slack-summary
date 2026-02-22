@@ -35,35 +35,18 @@ RAILS_ENV=production bin/rails assets:precompile
 echo "$(date '+%Y-%m-%d %H:%M:%S') Running migrations..."
 RAILS_ENV=production bin/rails db:migrate
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') Restarting server..."
-PIDFILE="tmp/pids/server.pid"
-if [ -f "$PIDFILE" ]; then
-  PID=$(cat "$PIDFILE")
-  if kill -0 "$PID" 2>/dev/null; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') Sending SIGTERM to PID $PID..."
-    kill "$PID" 2>/dev/null || true
-
-    # Wait for process to actually exit (up to 30s)
-    elapsed=0
-    while kill -0 "$PID" 2>/dev/null && [ "$elapsed" -lt 30 ]; do
-      sleep 1
-      elapsed=$((elapsed + 1))
-    done
-
-    if kill -0 "$PID" 2>/dev/null; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') Server still alive after ${elapsed}s, sending SIGKILL..."
-      kill -9 "$PID" 2>/dev/null || true
-      sleep 1
-    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') Server stopped after ${elapsed}s"
-    fi
+echo "$(date '+%Y-%m-%d %H:%M:%S') Requesting server restart..."
+PROD_PIDFILE="tmp/pids/prod.pid"
+if [ -f "$PROD_PIDFILE" ]; then
+  PROD_PID=$(cat "$PROD_PIDFILE")
+  if kill -0 "$PROD_PID" 2>/dev/null; then
+    kill -USR1 "$PROD_PID"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Sent SIGUSR1 to bin/prod (PID $PROD_PID)"
   else
-    echo "$(date '+%Y-%m-%d %H:%M:%S') PID $PID not running, removing stale pidfile"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') bin/prod PID $PROD_PID not running"
   fi
-  rm -f "$PIDFILE"
 else
-  echo "$(date '+%Y-%m-%d %H:%M:%S') No pidfile found, touching restart.txt"
-  touch tmp/restart.txt
+  echo "$(date '+%Y-%m-%d %H:%M:%S') No prod.pid found, cannot signal restart"
 fi
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') Deploy complete."

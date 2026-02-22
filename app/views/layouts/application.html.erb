@@ -24,9 +24,9 @@
       <% end %>
     </nav>
 
-    <main class="p-8 overflow-y-auto">
+    <main class="py-8 overflow-y-auto">
       <% if notice.present? %>
-        <div class="bg-green-50 dark:bg-green-900/30 border border-success rounded-md px-4 py-3 mb-6 text-green-800 dark:text-green-200 text-sm"><%= notice %></div>
+        <div class="bg-green-50 dark:bg-green-900/30 border border-success rounded-md px-4 py-3 mb-6 mx-8 text-green-800 dark:text-green-200 text-sm"><%= notice %></div>
       <% end %>
       <%= yield %>
     </main>

@@ -3,28 +3,28 @@
 <%= turbo_stream_from "dashboard_overview" %>
 <%= turbo_stream_from "dashboard_events" %>
 
-<div id="dashboard_live_activities" class="overflow-x-auto pb-2 whitespace-nowrap mb-6">
+<div id="dashboard_live_activities" class="overflow-x-auto pb-2 whitespace-nowrap mb-6 px-8">
   <% @live_activities.each do |activity| %>
     <%= render "dashboard/live_activity", live_activity: activity %>
   <% end %>
 </div>
 
 <div data-controller="item-count">
-  <h2 class="text-xl font-semibold mb-4"><%= link_to "Action Items", action_items_path, class: "hover:underline" %><span data-item-count-target="count"><%= " (#{@action_items.size})" if @action_items.any? %></span></h2>
-  <div id="dashboard_action_items" data-item-count-target="items" class="flex items-stretch gap-3 overflow-x-auto pb-2 mb-8" <%= "hidden" if @action_items.empty? %>>
+  <h2 class="text-xl font-semibold mb-4 px-8"><%= link_to "Action Items", action_items_path, class: "hover:underline" %><span data-item-count-target="count"><%= " (#{@action_items.size})" if @action_items.any? %></span></h2>
+  <div id="dashboard_action_items" data-item-count-target="items" class="flex items-stretch gap-3 overflow-x-auto pb-2 mb-8 px-8" <%= "hidden" if @action_items.empty? %>>
     <% @action_items.each do |action_item| %>
       <%= render "dashboard/action_item", action_item: action_item %>
     <% end %>
   </div>
-  <p data-item-count-target="empty" class="text-sm text-muted mb-8" <%= "hidden" unless @action_items.empty? %>>You're all clear! No action items right now.</p>
+  <p data-item-count-target="empty" class="text-sm text-muted mb-8 px-8" <%= "hidden" unless @action_items.empty? %>>You're all clear! No action items right now.</p>
 </div>
 
-<div class="mb-8">
+<div class="mb-8 px-8">
   <h2 class="text-xl font-semibold mb-4">Overview</h2>
   <%= render "dashboard/overview", overview: @overview %>
 </div>
 
-<div data-controller="reply-modal" data-action="keydown@window->reply-modal#closeOnKey">
+<div data-controller="reply-modal" data-action="keydown@window->reply-modal#closeOnKey" class="px-8">
   <h1 class="text-xl font-semibold mb-6">Message Feed</h1>
 
   <div id="dashboard_events" class="space-y-2">

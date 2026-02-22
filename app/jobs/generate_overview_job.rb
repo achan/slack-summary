@@ -2,6 +2,12 @@ class GenerateOverviewJob < ApplicationJob
   queue_as :default
 
   def perform(profile_id: nil)
+    if profile_id.nil?
+      Profile.find_each do |profile|
+        self.class.perform_later(profile_id: profile.id)
+      end
+    end
+
     @profile = Profile.find_by(id: profile_id) if profile_id
 
     activity_title = @profile ? "Generating overview for #{@profile.name}" : "Generating overview"

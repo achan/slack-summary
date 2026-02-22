@@ -1,9 +1,6 @@
 class OverviewsController < ApplicationController
   def create
-    GenerateOverviewJob.perform_later(profile_id: nil)
-    Profile.find_each do |profile|
-      GenerateOverviewJob.perform_later(profile_id: profile.id)
-    end
+    GenerateOverviewJob.perform_later
     head :no_content
   end
 end

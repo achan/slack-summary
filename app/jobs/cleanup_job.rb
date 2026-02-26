@@ -14,14 +14,15 @@ class CleanupJob < ApplicationJob
 
     cutoff = RETENTION_PERIOD.ago
     events_deleted = SlackEvent.where("created_at < ?", cutoff).delete_all
+    feed_items_deleted = FeedItem.where("occurred_at < ?", cutoff).delete_all
 
     wont_fix_archived = ActionItem.active
       .where(status: "wont_fix")
       .where("updated_at < ?", WONT_FIX_ARCHIVE_AFTER.ago)
       .update_all(archived_at: Time.current)
 
-    Rails.logger.info("[CleanupJob] Deleted: #{events_deleted} events, auto-archived: #{wont_fix_archived} wont_fix items")
+    Rails.logger.info("[CleanupJob] Deleted: #{events_deleted} events, #{feed_items_deleted} feed items, auto-archived: #{wont_fix_archived} wont_fix items")
 
-    stop_live_activity(metadata: { "events_deleted" => events_deleted, "wont_fix_archived" => wont_fix_archived })
+    stop_live_activity(metadata: { "events_deleted" => events_deleted, "feed_items_deleted" => feed_items_deleted, "wont_fix_archived" => wont_fix_archived })
   end
 end

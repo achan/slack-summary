@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import Sortable from "sortablejs"
 
 export default class extends Controller {
-  static targets = ["columns", "modal", "modalTitle", "form", "feedId", "nameInput", "sourceCheckbox"]
+  static targets = ["columns", "modal", "modalTitle", "form", "feedId", "nameInput", "sourceCheckbox", "autoIncludeCheckbox"]
 
   connect() {
     this.sortable = Sortable.create(this.columnsTarget, {
@@ -45,6 +45,7 @@ export default class extends Controller {
     this.feedIdTarget.value = ""
     this.nameInputTarget.value = ""
     this.sourceCheckboxTargets.forEach(cb => cb.checked = false)
+    this.autoIncludeCheckboxTargets.forEach(cb => cb.checked = false)
     this.modalTarget.hidden = false
   }
 
@@ -53,6 +54,7 @@ export default class extends Controller {
     const feedId = button.dataset.feedId
     const feedName = button.dataset.feedName
     const sourceIds = (button.dataset.feedSourceIds || "").split(",").filter(Boolean)
+    const autoWorkspaceIds = (button.dataset.feedAutoIncludeWorkspaceIds || "").split(",").filter(Boolean)
 
     this.modalTitleTarget.textContent = "Edit Column"
     this.feedIdTarget.value = feedId
@@ -60,7 +62,18 @@ export default class extends Controller {
     this.sourceCheckboxTargets.forEach(cb => {
       cb.checked = sourceIds.includes(cb.dataset.sourceId)
     })
+    this.autoIncludeCheckboxTargets.forEach(cb => {
+      cb.checked = autoWorkspaceIds.includes(cb.dataset.workspaceId)
+    })
     this.modalTarget.hidden = false
+  }
+
+  toggleWorkspace(event) {
+    const workspaceId = event.currentTarget.dataset.workspaceId
+    const checkboxes = this.sourceCheckboxTargets.filter(cb => cb.dataset.workspaceId === workspaceId)
+    const allChecked = checkboxes.every(cb => cb.checked)
+    checkboxes.forEach(cb => cb.checked = !allChecked)
+    event.currentTarget.textContent = allChecked ? "Select All" : "Deselect All"
   }
 
   closeModal() {
@@ -93,7 +106,11 @@ export default class extends Controller {
           "X-CSRF-Token": token,
           "Accept": "text/vnd.turbo-stream.html"
         },
-        body: JSON.stringify({ name, source_ids: sourceIds })
+        body: JSON.stringify({
+          name,
+          source_ids: sourceIds,
+          auto_include_workspace_ids: this.autoIncludeCheckboxTargets.filter(cb => cb.checked).map(cb => cb.value)
+        })
       })
 
       if (response.ok) {

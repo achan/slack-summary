@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_25_000004) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_25_000005) do
   create_table "action_items", force: :cascade do |t|
     t.integer "summary_id"
     t.text "source_type", null: false
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_000004) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["feed_id", "occurred_at"], name: "index_feed_items_on_feed_id_and_occurred_at"
+    t.index ["feed_id", "source_type", "source_id"], name: "index_feed_items_uniqueness", unique: true
     t.index ["feed_id"], name: "index_feed_items_on_feed_id"
     t.index ["source_type", "source_id"], name: "index_feed_items_on_source_type_and_source_id"
   end

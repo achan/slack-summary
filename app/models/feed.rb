@@ -9,4 +9,8 @@ class Feed < ApplicationRecord
   def stream_name
     "feed_#{id}"
   end
+
+  def auto_include_workspace_ids
+    feed_sources.where(source_type: "Workspace").pluck(:source_id)
+  end
 end

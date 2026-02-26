@@ -45,15 +45,14 @@ class DashboardController < ApplicationController
     return if Feed.exists?
 
     feed = Feed.create!(name: "All Messages", position: 0)
+    Workspace.where(id: active_workspace_ids).find_each do |workspace|
+      feed.feed_sources.create!(source: workspace)
+    end
     SlackChannel.visible.channels.current.where(workspace_id: active_workspace_ids).find_each do |channel|
       feed.feed_sources.create!(source: channel)
     end
 
-    SlackEvent.messages
-      .where(slack_channel_id: feed.feed_sources.where(source_type: "SlackChannel").pluck(:source_id))
-      .find_each do |event|
-        feed.feed_items.create!(source: event, occurred_at: event.created_at)
-      end
+    BackfillFeedItemsJob.perform_later(feed_id: feed.id)
   end
 
   def pick_overview

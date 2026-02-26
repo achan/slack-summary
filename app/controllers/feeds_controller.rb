@@ -9,7 +9,9 @@ class FeedsController < ApplicationController
 
     if @feed.save
       sync_sources(@feed, params[:source_ids])
-      backfill_feed_items(@feed)
+      sync_auto_include_workspaces(@feed, params[:auto_include_workspace_ids])
+      delete_stale_feed_items(@feed)
+      BackfillFeedItemsJob.perform_later(feed_id: @feed.id)
       load_feed_items(@feed)
       @available_channels = available_channels
       respond_to do |format|
@@ -22,9 +24,11 @@ class FeedsController < ApplicationController
 
   def update
     @feed.update!(name: params[:name]) if params[:name].present?
+    sync_auto_include_workspaces(@feed, params[:auto_include_workspace_ids]) if params.key?(:auto_include_workspace_ids)
     if params[:source_ids]
       sync_sources(@feed, params[:source_ids])
-      backfill_feed_items(@feed)
+      delete_stale_feed_items(@feed)
+      BackfillFeedItemsJob.perform_later(feed_id: @feed.id)
     end
     load_feed_items(@feed)
     @available_channels = available_channels
@@ -59,29 +63,30 @@ class FeedsController < ApplicationController
     @feed = Feed.find(params[:id])
   end
 
+  def sync_auto_include_workspaces(feed, workspace_ids)
+    workspace_ids = Array(workspace_ids).map(&:to_i)
+    feed.feed_sources.where(source_type: "Workspace").where.not(source_id: workspace_ids).destroy_all
+    existing_ids = feed.feed_sources.where(source_type: "Workspace").pluck(:source_id)
+    (workspace_ids - existing_ids).each do |wid|
+      feed.feed_sources.create!(source_type: "Workspace", source_id: wid)
+    end
+  end
+
   def sync_sources(feed, source_ids)
     source_ids = Array(source_ids).map(&:to_i)
-    feed.feed_sources.where.not(source_id: source_ids, source_type: "SlackChannel").destroy_all
+    feed.feed_sources.where(source_type: "SlackChannel").where.not(source_id: source_ids).destroy_all
     existing_ids = feed.feed_sources.where(source_type: "SlackChannel").pluck(:source_id)
     (source_ids - existing_ids).each do |channel_id|
       feed.feed_sources.create!(source_type: "SlackChannel", source_id: channel_id)
     end
   end
 
-  def backfill_feed_items(feed)
+  def delete_stale_feed_items(feed)
     channel_ids = feed.feed_sources.where(source_type: "SlackChannel").pluck(:source_id)
-    # Remove feed items for channels no longer in the feed
     feed.feed_items
       .joins("INNER JOIN slack_events ON feed_items.source_id = slack_events.id AND feed_items.source_type = 'SlackEvent'")
       .where.not(slack_events: { slack_channel_id: channel_ids })
       .delete_all
-
-    # Add feed items for new channels
-    SlackEvent.messages.where(slack_channel_id: channel_ids).find_each do |event|
-      feed.feed_items.create_or_find_by!(source: event) do |fi|
-        fi.occurred_at = event.created_at
-      end
-    end
   end
 
   def load_feed_items(feed)
